@@ -1,0 +1,18 @@
+#!/bin/bash
+# Script to constantly recompile a script whenever it changes
+# Dependencies: inotifywait md5sum
+
+cd "$(dirname $1)"
+name="$(basename $1)"
+
+sum="`md5sum $name`"
+./savesvg "$name"
+chromium "${name%.*}".svg
+
+while inotifywait $name 2> /dev/null > /dev/null; do
+  sum2="`md5sum $name`"
+  if [ "$sum" != "$sum2" ]; then
+    sum=$sum2
+    ./savesvg "$name" &
+  fi
+done
