@@ -332,12 +332,12 @@ Amb això també podem reescriure l'exercici 3, només ens cal generar
 la llista de punts. Ho podem fer així:
 
 \begin{minted}{haskell}
-points = concat $ for [-8, 0, 8] $ \r -> for [-3, 0, 3] $ \c -> (c, r)
+points = concat (for [-8, 0, 8] \r -> (for [-3, 0, 3] \c -> (c, r)))
 \end{minted}
 
-On la funció \mintinline{haskell}|for| és simplement
-\mintinline{haskell}|flip fmap|. Llavors només cal pintar
-\mintinline{haskell}|trafficLights points|.
+On la funció \mintinline{haskell}|for| és
+\mintinline{text}|flip fmap|. Llavors només cal pintar
+\mintinline{text}|trafficLights points|.
 El resultat final es pot veure a la fig.~\ref{fig:ex6}, i el codi complert
 es troba a la pàgina~\pageref{code-ex6}.
 

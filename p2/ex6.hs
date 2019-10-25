@@ -11,7 +11,7 @@ trafficLight = foldMap lightBulb lights <> frame
 trafficLights :: [(Double, Double)] -> Drawing
 trafficLights = foldMap (\(x,y) -> translated x y trafficLight)
 
-points = concat $ for [-8, 0, 8] $ \r -> for [-3, 0, 3] $ \c -> (c, r)
+points = concat (for [-8, 0, 8] \r -> (for [-3, 0, 3] \c -> (c, r)))
 
 myDrawing :: Drawing
 myDrawing = trafficLights points
