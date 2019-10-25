@@ -1,0 +1,15 @@
+name: p2b
+
+dependencies:
+- base
+- text
+- bytestring
+- http-types
+- cookie
+- wai
+- wai-extra
+
+executables:
+  cgi:
+    main:                Main.hs
+    source-dirs:         src/haskell

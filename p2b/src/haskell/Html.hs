@@ -33,10 +33,12 @@ instance Monad HtmlM where
         let HtmlM (y, out2) = f x
         in (y, out1 <> out2)
 
+instance Semigroup (HtmlM ()) where
+    HtmlM (_, out1) <> HtmlM (_, out2) =
+        HtmlM ((), out1 <> out2)
+
 instance Monoid (HtmlM ()) where
     mempty = pure ()
-    mappend (HtmlM (_, out1)) (HtmlM (_, out2)) =
-        HtmlM ((), out1 <> out2)
 
 runHtml :: Html -> [Text]
 runHtml = snd . runHtmlM
