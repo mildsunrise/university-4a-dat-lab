@@ -61,8 +61,7 @@ instance Applicative Handler where
     -- tipus dels metodes en aquesta instancia:
     --          pure  :: a -> Handler a
     --          (<*>) :: Handler (a -> b) -> Handler a -> Handler b
-    pure x =
-        error "Handler.pure: A completar per l'estudiant"
+    pure x = HandlerC $ \ _ st -> pure ( x, st )
     HandlerC hf <*> HandlerC hx = HandlerC $ \ req st -> do
         ( f, st1 ) <- hf req st
         ( x, st2 ) <- hx req st1
@@ -72,8 +71,9 @@ instance Monad Handler where
     -- tipus dels metodes en aquesta instancia:
     --          (>>=) :: Handler a -> (a -> Handler b) -> Handler b
     return = pure
-    HandlerC hx >>= f =
-        error "Handler.(>>=): A completar per l'estudiant"
+    HandlerC hx >>= f = HandlerC $ \ req st -> do
+        ( x, st' ) <- hx req st
+        (runHandler $ f x) req st'
 
 -- ****************************************************************
 
@@ -107,33 +107,29 @@ dispatchHandler handler req respond = do
 
 -- Obte el metode HTTP de la peticio
 getMethod :: Handler Method
-getMethod =
-    error "Handler.getMethod: A completar per l'estudiant"
+getMethod = HandlerC $ \ req st ->
+    pure ( requestMethod req, st )
 
 -- Obte el valor de l'atribut de sessio indicat amb el nom.
 -- Retorna Nothing si l'atribut indicat no existeix.
 getSession :: Read a => Text -> Handler (Maybe a)
-getSession name =
-    -- NOTA: Useu la funcio 'getSession_' i 'readt' (que parseja un text).
-    error "Handler.getSession: A completar per l'estudiant"
+getSession name = (>>= readt) <$> getSession_ name
 
 -- Obte el valor de l'atribut de sessio indicat amb el nom.
 -- Retorna Nothing si l'atribut indicat no existeix o no te la sintaxis adequada.
 getSession_ :: Text -> Handler (Maybe Text)
-getSession_ name =
-    error "Handler.getSession: A completar per l'estudiant"
+getSession_ name = HandlerC $ \ req st ->
+    pure ( lookup name $ hsSession st, st )
 
 -- Fixa l'atribut de sessio indicat amb el nom i valor indicats.
 setSession :: Show a => Text -> a -> Handler ()
-setSession name value =
-    -- NOTA: Useu les funcions 'setSession_' i 'showt' (que converteix a text).
-    error "Handler.setSession: A completar per l'estudiant"
+setSession name value = setSession_ name (showt value)
 
 -- Fixa l'atribut de sessio indicat amb el nom i valor indicats.
 setSession_ :: Text -> Text -> Handler ()
 setSession_ name value = HandlerC $ \ req st -> do
     let newsession = (name, value) : filter ((name /=) . fst) (hsSession st)
-    error "Handler.setSession: A completar per l'estudiant"
+    pure ( (), hsSetSession newsession st )
 
 -- Obte els parametres del contingut de la peticio.
 getPostQuery :: Handler Query
