@@ -61,7 +61,7 @@ instance Applicative Handler where
     -- tipus dels metodes en aquesta instancia:
     --          pure  :: a -> Handler a
     --          (<*>) :: Handler (a -> b) -> Handler a -> Handler b
-    pure x = HandlerC $ \ _ st -> pure ( x, st )
+    pure x = HandlerC $ \ _ st0 -> pure ( x, st0 )
     HandlerC hf <*> HandlerC hx = HandlerC $ \ req st0 -> do
         ( f, st1 ) <- hf req st0
         ( x, st2 ) <- hx req st1
@@ -110,8 +110,8 @@ dispatchHandler handler req respond = do
 
 -- Obte el metode HTTP de la peticio
 getMethod :: Handler Method
-getMethod = HandlerC $ \ req st ->
-    pure ( requestMethod req, st )
+getMethod = HandlerC $ \ req st0 ->
+    pure ( requestMethod req, st0 )
 
 -- Obte el valor de l'atribut de sessio amb el nom indicat.
 -- Retorna Nothing si l'atribut indicat no existeix o no te la sintaxis adequada.
@@ -121,8 +121,8 @@ getSession name = (>>= readt) <$> getSession_ name
 -- Obte el valor de l'atribut de sessio amb el nom indicat.
 -- Retorna Nothing si l'atribut indicat no existeix.
 getSession_ :: Text -> Handler (Maybe Text)
-getSession_ name = HandlerC $ \ req st ->
-    pure ( lookup name $ hsSession st, st )
+getSession_ name = HandlerC $ \ req st0 ->
+    pure ( lookup name $ hsSession st0, st0 )
 
 -- Fixa l'atribut de sessio amb el nom i valor indicats.
 setSession :: Show a => Text -> a -> Handler ()
