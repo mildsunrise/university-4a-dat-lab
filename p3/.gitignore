@@ -2,3 +2,7 @@
 
 /p3.cabal
 /stack.yaml.lock
+
+/node_modules
+/package-lock.json
+*.db

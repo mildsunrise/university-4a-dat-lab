@@ -18,7 +18,7 @@ import Network.Wai
 --      corresponent instancia de Dispatch a partir de la definicio de rutes.
 --      L'autenticacio d'usuaris es realitza en un subsistema separat Auth.
 
-tasksDbName = "/home/pract/LabWEB/WEBprofe/private/sqlite3-dbs/tasks.db"
+tasksDbName = "/home/alba/Documents/uni/dat/p3/tasks.db"
 
 makeApp :: IO Application
 makeApp = do

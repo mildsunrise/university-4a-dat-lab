@@ -17,7 +17,7 @@ import Network.Wai
 -- Application initialization
 
 -- NOTA: Canvieu al vostre fitxer de la base de dades
-forumDbName = "/home/pract/LabWEB/WEBprofe/private/sqlite3-dbs/forum.db"
+forumDbName = "/home/alba/Documents/uni/dat/p3/forum.db"
 
 makeApp :: IO Application
 makeApp = do
