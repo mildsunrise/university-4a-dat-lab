@@ -1,0 +1,26 @@
+name: p3
+
+dependencies:
+- base
+- containers
+- text
+- bytestring
+- blaze-html
+- http-types
+- cookie
+- wai
+- wai-extra
+- sqlite-simple
+- template-haskell
+- parsec
+- time
+- mtl
+- directory
+
+executables:
+  tasks-cgi:
+    main:                Main.hs
+    source-dirs:         [src/dat-fw/haskell, src/tasks/haskell]
+  forum-cgi:
+    main:                Main.hs
+    source-dirs:         [src/dat-fw/haskell, src/forum/haskell]
