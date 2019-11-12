@@ -17,6 +17,7 @@ import           Control.Applicative
 
 
 newtype HtmlM a = HtmlM { runHtmlM :: (a, [Text]) }
+    -- (molt similar al monad Writer vist a teoria)
 
 type Html = HtmlM ()
 
@@ -43,9 +44,9 @@ runHtml = snd . runHtmlM
 
 -- Funcio principal que converteix 'Html' a 'Text'.
 runHtmlToText :: Html -> Text
-runHtmlToText = T.concat . concatMap addLF . snd . runHtmlM
+runHtmlToText = T.concat . fmap addLF . runHtml
     where
-        addLF t = [t, "\n"]
+        addLF t = t <> "\n"
 
 _hTell :: [Text] -> Html
 _hTell lines = HtmlM ((), lines)
@@ -80,3 +81,4 @@ _escapeHtml =
         convert '\'' = "&apos;"
         convert c    = T.singleton c
     in T.concatMap convert
+

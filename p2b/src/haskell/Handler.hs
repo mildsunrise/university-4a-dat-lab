@@ -89,15 +89,17 @@ data HandlerResponse =
 --        de les cookies rebudes en la peticio WAI.
 --      Executa el handler passant-li la peticio i l'estat inicial.
 --      Amb l'execucio del handler s'obte el parell format
---        pel resultat del handler i l'estat final (st1).
+--        pel resultat del handler (res) i l'estat final (st1).
 --      Construeix la corresponent resposta WAI i l'envia.
 --        La resposta WAI depen del nou estat de sessio en st1.
+-- El tipus 'Application' esta definit en el modul 'Network.Wai' com:
+--      type Application = Request -> (Response -> IO ResponseReceived) -> IO ResponseReceived
 dispatchHandler :: Handler HandlerResponse -> Application
 dispatchHandler handler req respond = do
     let st0 = HandlerStateC Nothing (U.requestSession req)
-    ( resp, st1 ) <- runHandler handler req st0
+    ( res, st1 ) <- runHandler handler req st0
     let newsession = hsSession st1
-        wairesp = case resp of
+        wairesp = case res of
             HRHtml html -> U.htmlResponse (runHtmlToText html) newsession
             HRRedirect url -> U.redirectResponse url newsession
             HRError status msg -> U.errorResponse status msg
@@ -110,30 +112,30 @@ getMethod :: Handler Method
 getMethod =
     error "Handler.getMethod: A completar per l'estudiant"
 
--- Obte el valor de l'atribut de sessio indicat amb el nom.
--- Retorna Nothing si l'atribut indicat no existeix.
+-- Obte el valor de l'atribut de sessio amb el nom indicat.
+-- Retorna Nothing si l'atribut indicat no existeix o no te la sintaxis adequada.
 getSession :: Read a => Text -> Handler (Maybe a)
 getSession name =
     -- NOTA: Useu la funcio 'getSession_' i 'readt' (que parseja un text).
     error "Handler.getSession: A completar per l'estudiant"
 
--- Obte el valor de l'atribut de sessio indicat amb el nom.
--- Retorna Nothing si l'atribut indicat no existeix o no te la sintaxis adequada.
+-- Obte el valor de l'atribut de sessio amb el nom indicat.
+-- Retorna Nothing si l'atribut indicat no existeix.
 getSession_ :: Text -> Handler (Maybe Text)
 getSession_ name =
-    error "Handler.getSession: A completar per l'estudiant"
+    error "Handler.getSession_: A completar per l'estudiant"
 
--- Fixa l'atribut de sessio indicat amb el nom i valor indicats.
+-- Fixa l'atribut de sessio amb el nom i valor indicats.
 setSession :: Show a => Text -> a -> Handler ()
 setSession name value =
     -- NOTA: Useu les funcions 'setSession_' i 'showt' (que converteix a text).
     error "Handler.setSession: A completar per l'estudiant"
 
--- Fixa l'atribut de sessio indicat amb el nom i valor indicats.
+-- Fixa l'atribut de sessio amb el nom i valor indicats.
 setSession_ :: Text -> Text -> Handler ()
 setSession_ name value = HandlerC $ \ req st -> do
     let newsession = (name, value) : filter ((name /=) . fst) (hsSession st)
-    error "Handler.setSession: A completar per l'estudiant"
+    error "Handler.setSession_: A completar per l'estudiant"
 
 -- Obte els parametres del contingut de la peticio.
 getPostQuery :: Handler Query
