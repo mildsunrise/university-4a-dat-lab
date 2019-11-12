@@ -6,7 +6,7 @@ where
 import App
 
 import Network.Wai
-import Network.Wai.Handler.CGI(run)
+import Network.Wai.Handler.CGI (run)
 
 import Control.Exception
 
@@ -14,8 +14,9 @@ import Control.Exception
 
 main :: IO ()
 main = do
+    -- try :: Exception e => IO a -> IO (Either e a)
     r <- try $
-        -- CGI adapter
+        -- CGI adapter: run :: Application -> IO ()
         run calcApp
     case r of
         Right _ -> pure ()

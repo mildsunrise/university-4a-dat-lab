@@ -53,8 +53,8 @@ hsSetSession s (HandlerStateC q _) = HandlerStateC q s
 instance Functor Handler where
     -- tipus dels metodes en aquesta instancia:
     --          fmap :: (a -> b) -> Handler a -> Handler b
-    fmap f (HandlerC h) = HandlerC $ \ req st -> do
-        ( x, st1 ) <- h req st
+    fmap f (HandlerC h) = HandlerC $ \ req st0 -> do
+        ( x, st1 ) <- h req st0
         pure ( f x, st1 )
 
 instance Applicative Handler where
@@ -62,8 +62,8 @@ instance Applicative Handler where
     --          pure  :: a -> Handler a
     --          (<*>) :: Handler (a -> b) -> Handler a -> Handler b
     pure x = HandlerC $ \ _ st -> pure ( x, st )
-    HandlerC hf <*> HandlerC hx = HandlerC $ \ req st -> do
-        ( f, st1 ) <- hf req st
+    HandlerC hf <*> HandlerC hx = HandlerC $ \ req st0 -> do
+        ( f, st1 ) <- hf req st0
         ( x, st2 ) <- hx req st1
         pure ( f x, st2 )
 
@@ -71,9 +71,10 @@ instance Monad Handler where
     -- tipus dels metodes en aquesta instancia:
     --          (>>=) :: Handler a -> (a -> Handler b) -> Handler b
     return = pure
-    HandlerC hx >>= f = HandlerC $ \ req st -> do
-        ( x, st' ) <- hx req st
-        (runHandler $ f x) req st'
+    (>>) = (*>)
+    HandlerC hx >>= f = HandlerC $ \ req st0 -> do
+        ( x, st1 ) <- hx req st0
+        (runHandler $ f x) req st1
 
 -- ****************************************************************
 
@@ -89,15 +90,17 @@ data HandlerResponse =
 --        de les cookies rebudes en la peticio WAI.
 --      Executa el handler passant-li la peticio i l'estat inicial.
 --      Amb l'execucio del handler s'obte el parell format
---        pel resultat del handler i l'estat final (st1).
+--        pel resultat del handler (res) i l'estat final (st1).
 --      Construeix la corresponent resposta WAI i l'envia.
 --        La resposta WAI depen del nou estat de sessio en st1.
+-- El tipus 'Application' esta definit en el modul 'Network.Wai' com:
+--      type Application = Request -> (Response -> IO ResponseReceived) -> IO ResponseReceived
 dispatchHandler :: Handler HandlerResponse -> Application
 dispatchHandler handler req respond = do
     let st0 = HandlerStateC Nothing (U.requestSession req)
-    ( resp, st1 ) <- runHandler handler req st0
+    ( res, st1 ) <- runHandler handler req st0
     let newsession = hsSession st1
-        wairesp = case resp of
+        wairesp = case res of
             HRHtml html -> U.htmlResponse (runHtmlToText html) newsession
             HRRedirect url -> U.redirectResponse url newsession
             HRError status msg -> U.errorResponse status msg
@@ -110,37 +113,37 @@ getMethod :: Handler Method
 getMethod = HandlerC $ \ req st ->
     pure ( requestMethod req, st )
 
--- Obte el valor de l'atribut de sessio indicat amb el nom.
--- Retorna Nothing si l'atribut indicat no existeix.
+-- Obte el valor de l'atribut de sessio amb el nom indicat.
+-- Retorna Nothing si l'atribut indicat no existeix o no te la sintaxis adequada.
 getSession :: Read a => Text -> Handler (Maybe a)
 getSession name = (>>= readt) <$> getSession_ name
 
--- Obte el valor de l'atribut de sessio indicat amb el nom.
--- Retorna Nothing si l'atribut indicat no existeix o no te la sintaxis adequada.
+-- Obte el valor de l'atribut de sessio amb el nom indicat.
+-- Retorna Nothing si l'atribut indicat no existeix.
 getSession_ :: Text -> Handler (Maybe Text)
 getSession_ name = HandlerC $ \ req st ->
     pure ( lookup name $ hsSession st, st )
 
--- Fixa l'atribut de sessio indicat amb el nom i valor indicats.
+-- Fixa l'atribut de sessio amb el nom i valor indicats.
 setSession :: Show a => Text -> a -> Handler ()
 setSession name value = setSession_ name (showt value)
 
--- Fixa l'atribut de sessio indicat amb el nom i valor indicats.
+-- Fixa l'atribut de sessio amb el nom i valor indicats.
 setSession_ :: Text -> Text -> Handler ()
-setSession_ name value = HandlerC $ \ req st -> do
-    let newsession = (name, value) : filter ((name /=) . fst) (hsSession st)
-    pure ( (), hsSetSession newsession st )
+setSession_ name value = HandlerC $ \ req st0 -> do
+    let newsession = (name, value) : filter ((name /=) . fst) (hsSession st0)
+    pure ( (), hsSetSession newsession st0 )
 
 -- Obte els parametres del contingut de la peticio.
 getPostQuery :: Handler Query
-getPostQuery = HandlerC $ \ req st -> do
+getPostQuery = HandlerC $ \ req st0 -> do
     -- Si previament ja s'havien obtingut els parametres (i guardats en l'estat del handler)
     -- aleshores es retornen aquests, evitant tornar a llegir el contingut de la peticio
     -- (veieu el comentari de 'requestGetPostQuery' en el modul 'WaiUtils').
-    case hsQuery st of
+    case hsQuery st0 of
         Just query ->
-            pure ( query, st )
+            pure ( query, st0 )
         Nothing -> do
             query <- U.requestGetPostQuery req
-            pure ( query, hsSetQuery (Just query) st )
+            pure ( query, hsSetQuery (Just query) st0 )
 

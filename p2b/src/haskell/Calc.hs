@@ -7,24 +7,24 @@ module Calc where
 import           Data.Foldable    -- exporta la funcio 'foldlM'
 import           Data.Text (Text)
 
-type CalcState a = [a]
+type CalcStack a = [a]
 
-data CalcEvent a = CalcEnter a
+data CalcInstr a = CalcEnter a
                  | CalcBin (a -> a -> a) | CalcUn (a -> a)
                  | CalcDup | CalcPop | CalcFlip
 
-calcInit :: CalcState a
+calcInit :: CalcStack a
 calcInit = []
 
-calcTop :: CalcState a -> Either Text a
+calcTop :: CalcStack a -> Either Text a
 calcTop (x:_) = Right x
 calcTop _     = Left "The stack is empty"
 
-calcSolve :: [CalcEvent a] -> CalcState a -> Either Text (CalcState a)
+calcSolve :: [CalcInstr a] -> CalcStack a -> Either Text (CalcStack a)
 calcSolve evs xs =
     foldlM (flip calcSolve1) xs evs
 
-calcSolve1 :: CalcEvent a -> CalcState a -> Either Text (CalcState a)
+calcSolve1 :: CalcInstr a -> CalcStack a -> Either Text (CalcStack a)
 calcSolve1 (CalcEnter n) xs =
     Right $ n : xs
 calcSolve1 (CalcBin op) (x1:x2:xs) =
