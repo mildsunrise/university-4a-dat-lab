@@ -29,6 +29,7 @@ import           Data.Text(Text)
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 import qualified Data.Map as M
+import           Data.Map.Strict(insertWith)
 import           Text.Blaze.Html
 
 --------------------------------------------------------
@@ -168,7 +169,7 @@ postEnv = do
     if requestMethod req == "GET" then pure Nothing
     else do
         let f (n, Nothing) = id
-            f (n, Just v)  = M.insertWith' (++) (T.decodeUtf8 n) [T.decodeUtf8 v]
+            f (n, Just v)  = insertWith (++) (T.decodeUtf8 n) [T.decodeUtf8 v]
         q <- lookupPostQuery
         pure $ Just $ foldr f M.empty q
 

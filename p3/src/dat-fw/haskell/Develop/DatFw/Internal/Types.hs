@@ -14,6 +14,7 @@ import           Network.Wai
 import           Network.HTTP.Types as H
 
 import           Control.Exception
+import qualified Control.Monad.Fail as Fail
 import           Control.Monad.IO.Class
 import           Data.Monoid
 import           Data.Typeable
@@ -174,6 +175,8 @@ instance Monad (HandlerFor site) where
     m >>= f = HandlerFor $ \ env -> do
         x <- unHandlerFor m env
         unHandlerFor (f x) env
+
+instance Fail.MonadFail (HandlerFor site) where
     fail s = HandlerFor $ \ _ -> fail s
 
 instance MonadIO (HandlerFor site) where
@@ -266,15 +269,17 @@ data WidgetState route = WidgetState
         , wsBody :: UrlRender route -> Html
         }
 
-instance Monoid (WidgetState route) where
-    mempty =
-        WidgetState { wsTitle = Nothing, wsHead = mempty, wsBody = mempty }
-    mappend x y =
+instance Semigroup (WidgetState route) where
+    x <> y =
         WidgetState
             { wsTitle = if isJust (wsTitle y) then wsTitle y else wsTitle x
             , wsHead = wsHead x `mappend` wsHead y
             , wsBody = wsBody x `mappend` wsBody y
             }
+
+instance Monoid (WidgetState route) where
+    mempty =
+        WidgetState { wsTitle = Nothing, wsHead = mempty, wsBody = mempty }
 
 data WidgetData site = WidgetData
         { wdStateRef :: IORef (WidgetState (Route site))
@@ -301,16 +306,19 @@ instance Monad (WidgetFor site) where
     m >>= f = WidgetFor $ \ env -> do
         x <- unWidgetFor m env
         unWidgetFor (f x) env
+
+instance Fail.MonadFail (WidgetFor site) where
     fail s = WidgetFor $ \ _ -> fail s
 
 instance MonadIO (WidgetFor site) where
     liftIO io = WidgetFor $ \ _ -> io
 
+instance Semigroup (Widget site) where
+    (<>) = (*>)
+
 instance Monoid (Widget site) where
     mempty =
         pure ()
-    mappend x y =
-        x *> y
 
 type instance HandlerSite (WidgetFor site) = site
 type instance SubHandlerSite (WidgetFor site) = site
@@ -341,6 +349,8 @@ instance Monad (SubHandlerFor subsite site) where
     m >>= f = SubHandlerFor $ \ env -> do
         x <- unSubHandlerFor m env
         unSubHandlerFor (f x) env
+
+instance Fail.MonadFail (SubHandlerFor subsite site) where
     fail s = SubHandlerFor $ \ _ -> fail s
 
 instance MonadIO (SubHandlerFor subsite site) where
