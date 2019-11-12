@@ -53,8 +53,8 @@ hsSetSession s (HandlerStateC q _) = HandlerStateC q s
 instance Functor Handler where
     -- tipus dels metodes en aquesta instancia:
     --          fmap :: (a -> b) -> Handler a -> Handler b
-    fmap f (HandlerC h) = HandlerC $ \ req st -> do
-        ( x, st1 ) <- h req st
+    fmap f (HandlerC h) = HandlerC $ \ req st0 -> do
+        ( x, st1 ) <- h req st0
         pure ( f x, st1 )
 
 instance Applicative Handler where
@@ -63,8 +63,8 @@ instance Applicative Handler where
     --          (<*>) :: Handler (a -> b) -> Handler a -> Handler b
     pure x =
         error "Handler.pure: A completar per l'estudiant"
-    HandlerC hf <*> HandlerC hx = HandlerC $ \ req st -> do
-        ( f, st1 ) <- hf req st
+    HandlerC hf <*> HandlerC hx = HandlerC $ \ req st0 -> do
+        ( f, st1 ) <- hf req st0
         ( x, st2 ) <- hx req st1
         pure ( f x, st2 )
 
@@ -72,6 +72,7 @@ instance Monad Handler where
     -- tipus dels metodes en aquesta instancia:
     --          (>>=) :: Handler a -> (a -> Handler b) -> Handler b
     return = pure
+    (>>) = (*>)
     HandlerC hx >>= f =
         error "Handler.(>>=): A completar per l'estudiant"
 
@@ -133,20 +134,21 @@ setSession name value =
 
 -- Fixa l'atribut de sessio amb el nom i valor indicats.
 setSession_ :: Text -> Text -> Handler ()
-setSession_ name value = HandlerC $ \ req st -> do
-    let newsession = (name, value) : filter ((name /=) . fst) (hsSession st)
+setSession_ name value = HandlerC $ \ req st0 -> do
+    let newsession = (name, value) : filter ((name /=) . fst) (hsSession st0)
+        -- Observeu que '(name /=) . fst' equival a '\ p -> name /= fst p'
     error "Handler.setSession_: A completar per l'estudiant"
 
 -- Obte els parametres del contingut de la peticio.
 getPostQuery :: Handler Query
-getPostQuery = HandlerC $ \ req st -> do
+getPostQuery = HandlerC $ \ req st0 -> do
     -- Si previament ja s'havien obtingut els parametres (i guardats en l'estat del handler)
     -- aleshores es retornen aquests, evitant tornar a llegir el contingut de la peticio
     -- (veieu el comentari de 'requestGetPostQuery' en el modul 'WaiUtils').
-    case hsQuery st of
+    case hsQuery st0 of
         Just query ->
-            pure ( query, st )
+            pure ( query, st0 )
         Nothing -> do
             query <- U.requestGetPostQuery req
-            pure ( query, hsSetQuery (Just query) st )
+            pure ( query, hsSetQuery (Just query) st0 )
 
