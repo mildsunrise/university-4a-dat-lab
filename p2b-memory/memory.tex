@@ -45,6 +45,8 @@
   pdfsubject={DAT},
 }}
 
+\newcommand{\haskellfunc}[1]{\texorpdfstring{\mintinline{haskell}{#1}}{#1}}
+
 % document metadata
 \author{Alba Mendez}
 \title{Memòria pràctica 2B\\
@@ -174,7 +176,8 @@ Es defineix un monad \mintinline{haskell}|Handler a|, que té les següents prop
 Aquest estat emmagatzema principalment les dades de sessió (una llista de parells clau-valor, com
 s'explica a dalt).
 \item Reader monad: Permet operar amb la petició HTTP quan encara no la tenim.
-\item A més, encapsula una acció I/O de tipus \mintinline{haskell}|a|.
+\item A més, encapsula una acció I/O que retorna el resultat de tipus \mintinline{haskell}|a|,
+i el nou estat.
 \end{itemize}
 
 Es tracta doncs d'un mòdul genèric que construeix una capa d'abstracció
@@ -188,13 +191,33 @@ de les funcions demanades.
 
 \part{Solució de la pràctica}
 
-TODO
+A continuació s'explicarà l'estructura del mòdul en més detall,
+i s'exposaran les solucions a les funcions que es demana implementar.
 
 \section{Implementació del monad}
+
+En primer lloc es defineix el monad com hem explicat en la secció
+anterior. Se'ns demana implementar \mintinline{haskell}|pure| (àlias
+de \mintinline{haskell}|return|) i la funció \emph{bind} del monad.
+
+\vskip 1em
+
+Anem a la funció \mintinline{haskell}|pure|. Per definició, agafa un
+valor \mintinline{haskell}{x} i l'encapsula dins el monad. La implementació
+és fàcil, només cal cridar el constructor (\mintinline{haskell}|HandlerC|)
+passant una lambda que, donada una petició i un estat, retorna una acció
+I/O pura de \mintinline{haskell}{x} i aquest estat:
 
 \begin{minted}{haskell}
 pure x = HandlerC $ \ _ st0 -> pure ( x, st0 )
 \end{minted}
+
+La funció \emph{bind} és una mica més complicada. Es crida el constructor
+amb una lambda com abans, però ara cal passar la petició i l'estat al primer
+monad, per obtenir una acció I/O. El resultat d'\emph{aquesta} acció I/O
+es passa a \mintinline{haskell}|f| per obtenir un nou monad. Llavors cal
+cridar \mintinline{haskell}|runHandler| i passar-li la petició i el nou estat,
+per obtenir l'acció I/O final:
 
 \begin{minted}{haskell}
 HandlerC hx >>= f = HandlerC $ \ req st0 -> do
@@ -202,47 +225,97 @@ HandlerC hx >>= f = HandlerC $ \ req st0 -> do
     (runHandler $ f x) req st1
 \end{minted}
 
-\section{Funcions de gestió de la sessió}
+A continuació s'implementen funcions que fan servir el monad anterior per
+manipular les dades de la sessió, i també una per obtenir el mètode de la petició,
+que és la que implementarem a continuació.
+
+\section{Funció \haskellfunc{getMethod}}
+
+La funció es defineix com \mintinline{haskell}|getMethod :: Handler Method|.
+Com el seu nom indica, simplement retorna el mètode de la petició. Per
+implementar-la primer busquem com extreure el mètode de la petició, i veiem
+que es fa amb la funció de WAI \mintinline{haskell}|requestMethod|.
+
+Llavors només cal construir un monad amb aquest resultat, però no podem fer
+servir \mintinline{haskell}|pure| perquè la petició està encapsulada en el
+monad. De tota forma, la implementació és molt similar a \mintinline{haskell}|pure|:
 
 \begin{minted}{haskell}
-getMethod :: Handler Method
 getMethod = HandlerC $ \ req st0 ->
-    pure ( requestMethod req, st0 )  
+    pure ( requestMethod req, st0 )
 \end{minted}
+
+\section{Funcions \haskellfunc{getSession\_} i \haskellfunc{setSession\_}}
+
+Finalment es demana implementar \mintinline{haskell}|getSession| i \mintinline{haskell}|setSession|,
+que donada una clau, emmagatzemen o retornen el valor que té associat en l'estat
+de la sessió:
 
 \begin{minted}{haskell}
 getSession :: Read a => Text -> Handler (Maybe a)
-getSession name = (>>= readt) <$> getSession_ name
+setSession :: Show a => Text -> a -> Handler ()
 \end{minted}
+
+Abans però, implementarem \mintinline{haskell}|getSession_| i \mintinline{haskell}|setSession_|.
+Aquestes son les versions «base» que accepten i retornen el valor en text,
+mentre que les versions sense \mintinline{text}|_| fan servir \mintinline{haskell}|showt|
+o \mintinline{haskell}|readt| per convertir el valor a text primer:
 
 \begin{minted}{haskell}
 getSession_ :: Text -> Handler (Maybe Text)
+setSession_ :: Text -> Text -> Handler ()    
+\end{minted}
+
+\vskip 1em
+
+Comencem amb \mintinline{haskell}|getSession_|. La seva implementació
+és molt similar a la de \mintinline{haskell}|getMethod|, però aquí farem
+servir \mintinline{haskell}{hsSession} per extreure les dades de sessió de l'estat,
+i després la funció estàndard \mintinline{haskell}{lookup} per extreure el valor
+correponent a la clau donada:
+
+\begin{minted}{haskell}
 getSession_ name = HandlerC $ \ req st0 ->
     pure ( lookup name $ hsSession st0, st0 )
 \end{minted}
 
-\begin{minted}{haskell}
-setSession :: Show a => Text -> a -> Handler ()
-setSession name value = setSession_ name (showt value)
-\end{minted}
-
-Aquesta funció ens ve ja mig implementada:
+Anem amb \mintinline{haskell}|setSession_|. Aquesta funció ens ve ja mig
+implementada; s'extreu la sessió de l'estat com hem fet abans i es reemplaça
+el valor en la clau donada:
 
 \begin{minted}{haskell}
-setSession_ :: Text -> Text -> Handler ()
 setSession_ name value = HandlerC $ \ req st0 -> do
     let newsession = (name, value) : filter ((name /=) . fst) (hsSession st0)
     error "Handler.setSession_: A completar per l'estudiant"
 \end{minted}
 
-Es fa \mintinline{haskell}|pure ( (), hsSetSession newsession st0 )|.
+L'únic que queda, doncs, és reemplaçar la sessió per \mintinline{haskell}|newsession|
+i retornar el nou estat. Això ho podem fer amb la funció \mintinline{haskell}|hsSetSession|.
 Per tant, el resultat és:
 
 \begin{minted}{haskell}
-setSession_ :: Text -> Text -> Handler ()<
 setSession_ name value = HandlerC $ \ req st0 -> do
     let newsession = (name, value) : filter ((name /=) . fst) (hsSession st0)
     pure ( (), hsSetSession newsession st0 )
+\end{minted}
+
+\section{Funcions \haskellfunc{getSession} i \haskellfunc{setSession}}
+
+Ara és fàcil implementar \mintinline{haskell}|getSession| i \mintinline{haskell}|setSession|
+fent servir aquestes funcions. La segona és fàcil, només cal cridar \mintinline{haskell}|setSession_|
+amb el valor convertit:
+
+\begin{minted}{haskell}
+setSession name value = setSession_ name (showt value)
+\end{minted}
+
+\mintinline{haskell}|getSession| és una mica més complex ja que \mintinline{haskell}|getSession_ name|
+retorna el resultat dins el monad; cal mapejar-lo. Però el monad no conté
+directament \mintinline{haskell}|Text| sinó \mintinline{haskell}|Maybe Text|;
+per tant no podem mapejar el valor amb \mintinline{haskell}|readt|, ho hem de fer amb \mintinline{haskell}{(>>= readt)}:
+
+\begin{minted}{haskell}
+getSession name = (>>= readt) <$> getSession_ name
 \end{minted}
 
 \end{document}
