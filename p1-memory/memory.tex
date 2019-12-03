@@ -1,0 +1,323 @@
+\documentclass[catalan, a4paper]{scrartcl}
+
+% encoding
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{babel}
+
+% formatting and fixes
+\frenchspacing
+\usepackage[style=spanish]{csquotes}
+\MakeAutoQuote{«}{»}
+\usepackage{subcaption}
+
+% general design preferences (page, paragraph indent/space, margins, class options, ...)
+\setlength{\parskip}{10pt}
+\setlength{\parindent}{0pt}
+%\pagestyle{plain}
+
+% ADD ANY SPECIFIC PACKAGES HERE
+% (CHEMISTRY, CODE, PUBLISHING)
+\usepackage{siunitx}
+\usepackage{tikz}
+\usepackage{commath}
+\usepackage{mathtools}
+\usepackage{nicefrac}
+\usepackage{minted}
+\usepackage{setspace}
+
+% other options
+
+%\usemintedstyle{xcode}
+\setminted{
+  %frame=leftline,
+  %framesep=12pt,
+  xleftmargin=15pt,
+  breaklines,
+  breakautoindent,
+  breakindent=1em,
+}
+
+% hyperlink setup / metadata
+\usepackage{hyperref}
+\AfterPreamble{\hypersetup{
+  pdftitle={Memòria P1 — PSAVC QP2019},
+  pdfsubject={DAT},
+}}
+
+% document metadata
+\author{Alba Mendez}
+\title{Memòria pràctica 1\\
+{\small DAT QT2019}}
+\date{12 d'octubre de 2019}
+
+\begin{document}
+
+%\begin{minipage}{\columnwidth}
+\maketitle
+%\end{minipage}
+
+
+\part{Introducció}
+
+En aquesta primera pràctica es fa una introducció al protocol HTTP,
+els tipus de continguts que es poden servir,
+el funcionament bàsic d'un servidor web (en aquest cas Apache), i
+el funcionament d'un programa CGI.
+
+
+\paragraph{Exercici 1.} Es demana que fem una pàgina simple i la fem
+accessible a la arrel del nostre espai web personal, que en el meu
+cas és \url{http://soft0.upc.edu/~ldatusr10/}.
+
+En primer lloc creem la carpeta \mintinline{text}|public_html| dins
+la nostra home, i el fitxer \mintinline{text}|index.html| a dins. Per
+afegir varietat, també he creat una fulla d'estils (\mintinline{text}|styles.css|)
+i una imatge de fons dins la mateixa carpeta.
+
+L'HTML és el següent:
+
+\begin{minted}{html}
+<!doctype html>
+<html>
+<head>
+  <meta charset='UTF-8'>
+  <meta name="robots" content="noindex">
+  <title>Main</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  
+  <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+
+  <div class="content">
+    <h1>Hola.</h1>
+    <p>Em dic Alba.</p>
+  </div>
+
+</body>
+</html>
+\end{minted}
+
+Els estils no s'inclouen per brevetat. Accedim a la URL i comprovem que
+funciona correctament.
+
+
+\paragraph{Exercici 2.} Ara es demana que afegim un enllaç a la pàgina
+nova \url{http://soft0.upc.edu/~ldatusr10/practica1/}.
+
+Per fer-ho, afegim l'HTML següent a la pàgina anterior, després del
+paràgraf:
+
+\begin{minted}{html}
+<a class="practica" href="practica1/">Pràctica 1</a>
+\end{minted}
+
+I creem una nova carpeta \mintinline{text}|practica1| a \mintinline{text}|public_html|,
+i dins un fitxer \mintinline{text}|index.html| amb un HTML similar:
+
+\begin{minted}{html}
+<!doctype html>
+<html>
+<head>
+  <meta charset='UTF-8'>
+  <meta name="robots" content="noindex">
+  <title>Pràctica 1</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+
+  <div class="content">
+    <h1>Pràctica 1</h1>
+  </div>
+
+</body>
+</html>
+\end{minted}
+
+
+\paragraph{Exercici 3.} Ara es demana que afegim un enllaç a la pàgina
+nova \url{http://soft0.upc.edu/~ldatusr10/practica1/exemple.html}, i li canviem
+el sufix temporalment a \textsf{txt} per veure els efectes.
+
+De forma similar a l'exercici anterior, afegim l'enllaç a la pàgina:
+
+\begin{minted}{html}
+<a href="exemple.html">Exemple</a>
+\end{minted}
+
+I llavors creem el fitxer \mintinline{text}{exemple.html} al costat de l'anterior, amb un HTML
+similar (no es reprodueix per brevetat).
+
+Ara, si li canviem el sufix (extensió) com
+s'indica, veiem que
+el navegador mostra el text literalment (sense interpretar-lo com a HTML) i en
+una font monoespaiada.
+
+Aquesta decisió la pren en realitat el \emph{servidor}. Els servidors estàtics
+acostumen a fer servir l'extensió del fitxer per determinar el tipus MIME de la
+resposta que s'envia al navegador (header \mintinline{text}|Content-Type|).
+Abans el navegador rebia una resposta amb tipus
+\mintinline{text}|text/html| i ara és \mintinline{text}|text/plain|.
+
+
+\paragraph{Exercici 4.} Ara hem de reanomenar el directori \mintinline{text}|practica1|
+i observar els efectes.
+
+En fer-ho, veiem que es trenca l'enllaç que hem afegit a l'exercici 2, i hem de
+corregir-lo amb el nou nom de la carpeta.
+
+Això és perquè hem fet servir URLs \emph{relatives}; en canvi, si haguessin estat
+\emph{absolutes}, hauriem hagut de corregir també els enllaços entre fitxers de les
+carpetes, com el que hem creat a l'exercici 3.
+
+
+\paragraph{Exercici 5.} Ara hem de crear un CGI (el codi es dona ja fet)
+que presenta el dia i hora del servidor, i enllaçar-lo des de \mintinline{text}|practica1|.
+
+Creem el fitxer a \mintinline{text}|hora.cgi| dins la carpeta \mintinline{text}|practica1|,
+hi posem el codi que es dona, i li donem permisos d'execució amb \mintinline{text}|chmod +x hora.cgi|.
+Llavors només queda afegir un enllaç des de \mintinline{text}|index.html|:
+\begin{minted}{html}
+<a href="hora.cgi">CGI dia i hora</a>
+\end{minted}
+Comprovem que el CGI i l'enllaç funcionen correctament.
+
+\paragraph{Exercici 6.} Es demana que canviem el codi del CGI perquè retorni
+tipus MIME de la resposta \mintinline{text}|text/plain|.
+
+Si ho fem, passa el mateix que en l'exercici 3. En aquest cas però,
+no hi ha gaire diferència ja que la resposta no conté elements HTML o
+caràcters especials.
+
+
+
+\part{Experimentant amb HTTP}
+
+En aquesta part es demana que obtenim un document qualsevol mitjançant
+una petició GET amb telnet. Com a exemple, hem triat l'URL \url{http://upc.edu/foo}.
+Executem:
+
+\begin{minted}{bash}
+telnet upc.edu http
+\end{minted}
+
+I escrivim la petició GET:
+
+\begin{minipage}[b]{0.47\columnwidth}
+\begin{minted}{http}
+GET /foo HTTP/1.1
+Host: upc.edu
+
+\end{minted}
+\end{minipage}
+\begin{minipage}{0.53\columnwidth}
+\color{darkgray}\small\setstretch{1.15}
+L'URL acostuma a ser només un path (origin-form) \\
+La capçalera \mintinline{text}{Host} és obligatòria en HTTP 1.1.\\
+Línia en blanc, ja que la petició no té cos.
+\end{minipage}
+
+Un cop l'hem acabat d'escriure, obtenim la resposta següent del servidor:
+
+\begin{minipage}[t]{0.47\columnwidth}
+\begin{minted}{http}
+HTTP/1.1 302 Found
+Location: https://upc.edu/foo
+Connection: Keep-Alive
+Content-Length: 0
+\end{minted}
+\end{minipage}
+\begin{minipage}[t]{0.53\columnwidth}
+\color{darkgray}\small\setstretch{1.15}\vskip -.7em
+El codi d'estat 302 és una \emph{redirecció temporal}. \\
+Indica l'URL cap al que se'ns redirigeix. \\
+Indica com es gestiona la connexió. \\
+Indica la longitud del cos en bytes (buit). \\
+Línia en blanc, ja que la resposta no té cos.
+\end{minipage}
+
+Ara se'ns demana fer una petició POST a la URL \url{http://soft0.upc.edu/web/cgi/exemples/test-http.cgi}:
+
+\begin{minted}{bash}
+telnet soft0.upc.edu http
+\end{minted}
+
+\begin{minted}[escapeinside=||]{http}
+POST /web/cgi/exemples/test-http.cgi HTTP/1.1
+Host: soft0.upc.edu
+\end{minted}
+
+\begin{minted}[escapeinside=||]{http}
+HTTP/1.1 200 OK
+Date: Wed, 23 Oct 2019 10:31:29 GMT
+Server: Apache
+Vary: Accept-encoding
+Transfer-Encoding: chunked
+Content-Type: text/html
+
+|\textsf{\color{darkgray}[HTML de la resposta]}|
+\end{minted}
+
+Les diferències entre els dos mètodes són \emph{semàntiques}:
+Les peticions GET no haurien de tenir cos (i si el tenen, s'hauria d'ignorar), les peticions POST acostumen a tenir-ne.
+Una petició GET no hauria de tenir efectes secundaris, i és \emph{idempotent}; mentre que una POST normalment sí tindrà efectes secundaris i no necessàriament és idempotent.
+
+
+
+\part{Experimentant amb els CGIs}
+
+En aquesta part farem un CGI simple que actuarà de comptador de
+visites. En aquest cas hem triat escriure el CGI fent servir Python.
+Es crea el fitxer \mintinline{text}{visits.cgi} dins de \mintinline{text}|practica1|
+amb el següent contingut:
+
+\begin{minted}{python}
+#!/usr/bin/env python3
+import fcntl
+
+with open('../../visits.txt', 'r+') as f:
+  fcntl.flock(f, fcntl.LOCK_EX)
+  visits = int(f.read()) + 1   # Read visit count, increment
+  f.seek(0)
+  f.write(str(visits))         # Save visit count
+
+# Write response!
+print('Content-Type: text/plain')
+print('Cache-Control: no-cache')
+print()
+print(visits)
+\end{minted}
+
+\textbf{Nota:} La crida a \mintinline{text}{flock} garanteix que la
+operació és atòmica; sinó podria haver-hi corrupció de dades
+o visites no comptades, en situacions d'alt tràfic.
+
+S'inicialitza el fitxer on es desa el número de visites (\mintinline{bash}|echo 0 > ~/visits.txt|),
+se li donen permisos d'execució com hem fet abans, i comprovem que funciona
+correctament.
+
+Ara es demana que incrustem el contingut d'aquest CGI a \mintinline{text}{practica1/index.html};
+per a fer-ho inclourem aquest script abans del \mintinline{html}|</body>|:
+
+\begin{minted}{html}
+<script>
+  fetch('visits.cgi').then(x => x.text()).then(x =>
+    document.querySelector('.visits .counter').innerText = x)
+</script>
+\end{minted}
+
+Ja només queda afegir en algun lloc de la pàgina, el paràgraf on
+es mostrarà el nombre de visites:
+
+% <a href="visits.cgi">CGI visites</a>
+\begin{minted}{html}
+<p class="visits">Visitant número: <span class="counter"></span></p>
+\end{minted}
+
+Es pot veure el resultat final a \url{http://soft0.upc.edu/~ldatusr10/practica1/}.
+
+
+\end{document}
