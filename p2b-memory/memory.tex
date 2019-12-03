@@ -45,7 +45,7 @@
   pdfsubject={DAT},
 }}
 
-\newcommand{\haskellfunc}[1]{\texorpdfstring{\mintinline{haskell}{#1}}{#1}}
+\newcommand{\haskellfunc}[2]{\texorpdfstring{\mintinline{haskell}{#1}}{#2}}
 
 % document metadata
 \author{Alba Mendez}
@@ -229,7 +229,7 @@ A continuació s'implementen funcions que fan servir el monad anterior per
 manipular les dades de la sessió, i també una per obtenir el mètode de la petició,
 que és la que implementarem a continuació.
 
-\section{Funció \haskellfunc{getMethod}}
+\section{Funció \haskellfunc{getMethod}{getMethod}}
 
 La funció es defineix com \mintinline{haskell}|getMethod :: Handler Method|.
 Com el seu nom indica, simplement retorna el mètode de la petició. Per
@@ -245,7 +245,7 @@ getMethod = HandlerC $ \ req st0 ->
     pure ( requestMethod req, st0 )
 \end{minted}
 
-\section{Funcions \haskellfunc{getSession\_} i \haskellfunc{setSession\_}}
+\section{Funcions \haskellfunc{getSession_}{getSession\_} i \haskellfunc{setSession_}{setSession\_}}
 
 Finalment es demana implementar \mintinline{haskell}|getSession| i \mintinline{haskell}|setSession|,
 que donada una clau, emmagatzemen o retornen el valor que té associat en l'estat
@@ -299,7 +299,7 @@ setSession_ name value = HandlerC $ \ req st0 -> do
     pure ( (), hsSetSession newsession st0 )
 \end{minted}
 
-\section{Funcions \haskellfunc{getSession} i \haskellfunc{setSession}}
+\section{Funcions \haskellfunc{getSession}{getSession} i \haskellfunc{setSession}{setSession}}
 
 Ara és fàcil implementar \mintinline{haskell}|getSession| i \mintinline{haskell}|setSession|
 fent servir aquestes funcions. La segona és fàcil, només cal cridar \mintinline{haskell}|setSession_|
