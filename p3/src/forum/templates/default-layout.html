@@ -1,21 +1,29 @@
 <!DOCTYPE html>
 <html><head>
-  <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
+  <link rel="stylesheet" type="text/css" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
+  <link rel="stylesheet" type="text/css" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
   <title>Forum: #{pcTitle page}</title>
   ^{pcHead page}
 </head><body>
-<div class="container-fluid">
-  <div class="row"><div class="col-sm-offset-8 col-sm-4">
-    $maybe{ user <- mbuser }
-        <span class="glyphicon glyphicon-user"></span> Usuari: <b>#{user}</b> &nbsp;&nbsp;
-        <span class="glyphicon glyphicon-log-out"></span> <a href="@{AuthR LogoutR}">Tanca sessió</a>
-    $nothing
-        <span class="glyphicon glyphicon-log-in"></span> <a href="@{AuthR LoginR}">Login</a>
-    $end
+<nav class="navbar navbar-dark bg-primary">
+  <a class="navbar-brand mb-0 h1 mr-auto" href="@{HomeR}">DatForum</a>
+
+  $maybe{ user <- mbuser }
+    <span class="navbar-text mx-3"><i class="fa fa-user"></i> Usuari: <strong>#{user}</strong></span>
+    <a class="btn btn-primary my-1" href="@{AuthR LogoutR}"><i class="fa fa-sign-out"></i> Tanca sessió</a>
+  $nothing
+    <a class="btn btn-primary my-1" href="@{AuthR LoginR}"><i class="fa fa-sign-in"></i> Login</a>
+  $end
+</nav>
+
+$maybe{ msg <- mbmsg }
+<div class="container">
+  <div class="row"><div class="col-sm-12">
+    <div class="message error">#{msg}</div>
   </div></div>
-  $maybe{ msg <- mbmsg }<div class="message error">#{msg}</div>$end
-  <hr>
-  ^{pcBody page}
 </div>
+$end
+
+^{pcBody page}
 </body></html>
 

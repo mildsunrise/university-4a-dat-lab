@@ -1,21 +1,38 @@
+<div class="container my-4">
+<h1 class="my-3">Tauler de temes</h2>
 
-<h1>Plantilla src/templates/home.html (A completar per l'estudiant)</h2>
+<div class="row row-cols-1 row-cols-md-2">
+  $forall{ p <- themes }
+  <div class="col mb-4">
+    <div class="card">
+      <div class="card-body">
+        <h5 class="card-title">#{tTitle (snd p)}</h5>
+        <h6 class="card-subtitle mb-3 text-muted">#{tCategory (snd p)} <span class="mx-3"><i class="fa fa-user"></i> #{tLeader (snd p)}</span></h6>
+        <p class="card-text" style="white-space: pre-line">#{tDescription (snd p)}</p>
+        <a href="@{ThemeR (fst p)}" class="btn btn-primary">Visita</a>
+      </div>
+    </div>
+  </div>
+  $end
+</div>
+</div>
 
-<h3>Esbós de com mostrar la llista de temes (veieu com es defineix la variable <code>themes</code> en el corresponent handler)</h3>
-$forall{ p <- themes }
-  <p>Responsable: #{tLeader (snd p)}, Categoria: #{tCategory (snd p)}, Títol: #{tTitle (snd p)}
-     (<a href="@{ThemeR (fst p)}">enllaç a la ruta del tema</a>)</p>
-$end
+$if{ maybe False isAdmin mbuser }
+<div class="container my-4">
+<h1 class="my-3"><i class="fa fa-plus-circle"></i> Nou tema</h1>
 
-$if{ maybe True isAdmin mbuser }
-<h3>Esbós de com mostrar el formulari per crear un tema nou (veieu com es defineix la variable <code>tformw</code> en el corresponent handler)</h3>
+<form role="form" method="POST" action="@{HomeR}">
   <div class="row">
-  <div class="col-sm-offset-2 col-sm-10">
-    <form role="form" method="POST" action="@{HomeR}">
+    <div class="col-sm-12">
       ^{tformw}
-      <button type="submit" class="btn btn-success">Afegeix tema</button>
-    </form>
+    </div>
   </div>
+  <div class="row">
+    <div class="col-sm-12">
+      <button type="submit" class="btn btn-success">Afegeix</button>
+    </div>
   </div>
-$end
+</form>
 
+</div>
+$end

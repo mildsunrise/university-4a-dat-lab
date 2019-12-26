@@ -11,6 +11,8 @@ import Database.SQLite.Simple
 import System.Directory  -- doesFileExist
 import System.IO.Error  -- mkIOError, ...
 
+import Control.Monad
+
 -- ---------------------------------------------------------------
 -- Model: Types
 
@@ -140,6 +142,12 @@ updateQuestion qid theme conn =
 deleteQuestion :: QuestionId -> ForumDb -> IO ()
 deleteQuestion qid conn =
     execute conn "DELETE FROM questions WHERE id = ?" (Only qid)
+
+deleteFullQuestion :: QuestionId -> ForumDb -> IO ()
+deleteFullQuestion qid conn = do
+    answers <- getAnswerList qid conn
+    forM_ answers $ \ (aid, _) -> deleteAnswer aid conn
+    deleteQuestion qid conn
 
 -- ---------------------------------------------------------------
 -- Model: Data base access: Answer

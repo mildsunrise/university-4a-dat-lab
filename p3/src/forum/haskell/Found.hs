@@ -20,6 +20,7 @@ import qualified Data.Text.Encoding as T
 import Data.ByteString.Builder
 import Data.Int
 
+import Control.Monad
 
 data Forum = Forum { forumDb :: ForumDb
                    , forumUsers :: [(Text, Text)]
@@ -67,4 +68,13 @@ instance WebAuth Forum where
 isAdmin :: UserId -> Bool
 isAdmin u = u == "admin"
 
+isLeader :: Theme -> UserId -> Bool
+isLeader t u = isAdmin u || u == tLeader t
 
+requireAdmin :: MonadHandler m => UserId -> m ()
+requireAdmin u =
+    unless (isAdmin u) (permissionDenied "User is not admin")
+
+requireLeader :: MonadHandler m => Theme -> UserId -> m ()
+requireLeader t u =
+    unless (isLeader t u) (permissionDenied "User is not theme leader")

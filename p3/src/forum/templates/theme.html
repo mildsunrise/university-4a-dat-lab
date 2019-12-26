@@ -1,0 +1,77 @@
+<div class="container my-4">
+<h1 class="my-3">#{tTitle theme}</h2>
+<p class="lead" style="white-space: pre-line">#{tDescription theme}</p>
+
+<form role="form" method="POST" action="@{ThemeR tid}">
+  <div class="row row-cols-1 row-cols-md-2">
+    $forall{ p <- questions }
+    <div class="col mb-4">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">
+            $if{ maybe False (isLeader theme) mbuser }<input type="checkbox" name="qid" value="#{fst p}"/>$end
+            #{qTitle (snd p)}
+          </h5>
+          <h6 class="card-subtitle mb-3 text-muted">
+            <span><i class="fa fa-clock-o"></i> #{formatPosted (qPosted (snd p))}</span>
+            <span class="mx-3"><i class="fa fa-user"></i> #{qUser (snd p)}</span>
+          </h6>
+          <p class="card-text" style="white-space: pre-line">#{qText (snd p)}</p>
+          <a href="@{QuestionR tid (fst p)}" class="btn btn-primary">Visita</a>
+        </div>
+      </div>
+    </div>
+    $end
+  </div>
+
+  $if{ null questions }
+  <p>Encara no hi ha preguntes.</p>
+  $elseif{ maybe False (isLeader theme) mbuser}
+  <div class="row">
+    <div class="col-sm-12">
+      <button type="submit" class="btn btn-danger" name="delete">Elimina preguntes</button>
+    </div>
+  </div>
+  $end
+</form>
+</div>
+
+$if{ isJust mbuser }
+<div class="container my-4">
+<h2 class="my-3"><i class="fa fa-plus-circle"></i> Crea una nova pregunta</h2>
+
+<form role="form" method="POST" action="@{ThemeR tid}">
+  <div class="row">
+    <div class="col-sm-12">
+      ^{qformw}
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-sm-12">
+      <button type="submit" class="btn btn-success" name="add">Crea</button>
+    </div>
+  </div>
+</form>
+
+</div>
+$end
+
+$if{ maybe False (isLeader theme) mbuser }
+<div class="container my-4">
+<h2 class="my-3"><i class="fa fa-pencil"></i> Modifica el tema</h2>
+
+<form role="form" method="POST" action="@{ThemeR tid}">
+  <div class="row">
+    <div class="col-sm-12">
+      ^{tformw}
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-sm-12">
+      <button type="submit" class="btn btn-primary" name="modify">Modifica</button>
+    </div>
+  </div>
+</form>
+
+</div>
+$end
