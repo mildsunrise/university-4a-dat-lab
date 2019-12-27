@@ -1,0 +1,36 @@
+#!/bin/bash
+
+cd $(dirname $0)/..
+
+# -- System configuration
+
+if test $(hostname) != soft00; then
+  echo "ERROR: Aquest 'script' només es pot executar en el host 'soft00.upc.edu'" >&2
+  exit 1
+fi
+
+pack_db=~WEBprofe/usr/lib/ghc/x86_64-linux-ghc-7.10.3-packages.conf.d
+
+# -- Project configuration
+
+src_backend_dirs=src/backend/haskell:src/dat-fw-ext/haskell
+src_backend_main=src/backend/haskell/Main.hs
+src_frontend_dir=src/frontend
+
+cgi_dir=~/public_html/practica4
+cgi_file=$cgi_dir/forum-backend.cgi
+
+output=build
+
+#ghc_options=
+
+# -- Compilation & Installation
+
+test -d $cgi_dir || mkdir -p $cgi_dir
+
+ghc --make -package-db $pack_db -DWAI_CGI $ghc_options -i$src_backend_dirs -outputdir $output -o $cgi_file $src_backend_main || exit $?
+strip $cgi_file
+chmod 700 $cgi_file
+
+cp -v -uRd $src_frontend_dir/* $cgi_dir/
+
