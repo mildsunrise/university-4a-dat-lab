@@ -117,13 +117,14 @@ getThemesR = do
 postThemesR :: HandlerFor Forum Value
 postThemesR = do
     user <- requireAuthId
-    (pLeader, pTitle, pDescription) <- getRequestJSON $ \ obj -> do
+    (pLeader, pCategory, pTitle, pDescription) <- getRequestJSON $ \ obj -> do
         leader <- obj .: "leader"
+        category <- obj .: "category"
         title <- obj .: "title"
         description <- obj .: "description"
-        pure (leader, title, description)
-    when (not $ isAdmin user) (permissionDenied "User is not an admin")
-    let newtheme = Theme pLeader "" pTitle pDescription
+        pure (leader, category, title, description)
+    requireAdmin user
+    let newtheme = Theme pLeader pCategory pTitle pDescription
     tid <- runDbAction $ addTheme newtheme
     getThemeR tid
 
@@ -139,13 +140,15 @@ deleteThemeR :: ThemeId -> HandlerFor Forum Value
 deleteThemeR tid = do
     user <- requireAuthId
     theme <- runDbAction (getTheme tid) >>= maybe notFound pure
-    when (not $ isAdmin user) (permissionDenied "User is not an admin")
+    requireAdmin user
     runDbAction $ deleteFullTheme tid
     pure $ object []
 
 deleteFullTheme :: ThemeId -> ForumDb -> IO ()
-deleteFullTheme tid db = do
-    fail "A completar per l'estudiant"
+deleteFullTheme tid conn = do
+    questions <- getQuestionList tid conn
+    forM_ questions $ \ (qid, _) -> deleteFullQuestion qid conn
+    deleteTheme tid conn
 
 -- ---------------------------------------------------------------
 -- Questions list
@@ -158,39 +161,74 @@ getThemeQuestionsR tid = do
 
 postThemeQuestionsR :: ThemeId -> HandlerFor Forum Value
 postThemeQuestionsR tid = do
-    fail "A completar per l'estudiant"
+    user <- requireAuthId
+    (pTitle, pText) <- getRequestJSON $ \ obj -> do
+        title <- obj .: "title"
+        text <- obj .: "text"
+        pure (title, text)
+    time <- liftIO $ getCurrentTime
+    let newquestion = Question tid user time pTitle pText
+    qid <- runDbAction $ addQuestion newquestion
+    getQuestionR qid
 
 -- ---------------------------------------------------------------
 -- Question
 
 getQuestionR :: QuestionId -> HandlerFor Forum Value
 getQuestionR qid = do
-    fail "A completar per l'estudiant"
+    question <- runDbAction (getQuestion qid) >>= maybe notFound pure
+    questionToJSON (qid, question)
 
 deleteQuestionR :: QuestionId -> HandlerFor Forum Value
 deleteQuestionR qid = do
-    fail "A completar per l'estudiant"
+    user <- requireAuthId
+    question <- runDbAction (getQuestion qid) >>= maybe notFound pure
+    theme <- runDbAction (getTheme $ qTheme question) >>= maybe notFound pure
+    requireLeader theme user
+    runDbAction $ deleteFullQuestion qid
+    pure $ object []
+
+deleteFullQuestion :: QuestionId -> ForumDb -> IO ()
+deleteFullQuestion qid conn = do
+    answers <- getAnswerList qid conn
+    forM_ answers $ \ (aid, _) -> deleteAnswer aid conn
+    deleteQuestion qid conn
 
 -- ---------------------------------------------------------------
 -- Answers list
 
 getQuestionAnswersR :: QuestionId -> HandlerFor Forum Value
 getQuestionAnswersR qid = do
-    fail "A completar per l'estudiant"
+    answers <- runDbAction $ getAnswerList qid
+    janswers <- forM answers answerToJSON
+    pure $ object [("items", toJSON janswers)]
 
 postQuestionAnswersR :: QuestionId -> HandlerFor Forum Value
 postQuestionAnswersR qid = do
-    fail "A completar per l'estudiant"
+    user <- requireAuthId
+    pText <- getRequestJSON $ \ obj -> do
+        obj .: "text"
+    time <- liftIO $ getCurrentTime
+    let newanswer = Answer qid user time pText
+    aid <- runDbAction $ addAnswer newanswer
+    getAnswerR aid
 
 -- ---------------------------------------------------------------
 -- Answer
 
 getAnswerR :: AnswerId -> HandlerFor Forum Value
 getAnswerR aid = do
-    fail "A completar per l'estudiant"
+    answer <- runDbAction (getAnswer aid) >>= maybe notFound pure
+    answerToJSON (aid, answer)
 
 deleteAnswerR :: AnswerId -> HandlerFor Forum Value
 deleteAnswerR aid = do
-    fail "A completar per l'estudiant"
+    user <- requireAuthId
+    answer <- runDbAction (getAnswer aid) >>= maybe notFound pure
+    question <- runDbAction (getQuestion $ aQuestion answer) >>= maybe notFound pure
+    theme <- runDbAction (getTheme $ qTheme question) >>= maybe notFound pure
+    requireLeader theme user
+    runDbAction $ deleteAnswer aid
+    pure $ object []
 
 
