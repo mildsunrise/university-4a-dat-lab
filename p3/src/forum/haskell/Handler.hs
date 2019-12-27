@@ -15,6 +15,7 @@ import Develop.DatFw.Auth
 import Develop.DatFw.Form
 import Develop.DatFw.Form.Fields
 
+import           Data.List (isInfixOf)
 import           Data.Text (Text)
 import qualified Data.Text as T
 import           Data.Time.Clock (UTCTime, getCurrentTime)
@@ -63,8 +64,8 @@ getHomeR = do
 postHomeR :: HandlerFor Forum Html
 postHomeR = do
     user <- requireAuthId
-    requireAdmin user
     db <- getsSite forumDb
+    requireAdmin user
     (tformr, tformw) <- runAFormPost (themeForm Nothing)
     case tformr of
         FormSuccess newtheme -> do
@@ -115,8 +116,10 @@ postThemeR tid = do
                 let mbuser = Just user
                 defaultLayout $(widgetTemplFile "src/forum/templates/theme.html")
       else if deleteForm then do
+        requireLeader theme user
         checkBoxes <- lookupPostParams "qid"
         let qids = catMaybes ((readMaybe . T.unpack) <$> checkBoxes)
+        unless (isInfixOf qids (map fst questions)) notFound
         forM_ qids $ \ qid ->
             liftIO $ deleteFullQuestion qid db
         redirectRoute (ThemeR tid) []
@@ -168,8 +171,10 @@ postQuestionR tid qid = do
     addForm <- isJust <$> lookupPostParam "add"
     if deleteForm
       then do
+        requireLeader theme user
         checkBoxes <- lookupPostParams "aid"
         let aids = catMaybes ((readMaybe . T.unpack) <$> checkBoxes)
+        unless (isInfixOf aids (map fst answers)) notFound
         forM_ aids $ \ aid ->
             liftIO $ deleteAnswer aid db
         redirectRoute (QuestionR tid qid) []
