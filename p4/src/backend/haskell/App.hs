@@ -21,7 +21,7 @@ import qualified Data.Text as T
 
 -- NOTA: Canvieu al vostre fitxer de la base de dades
 forumDbName :: Text
-forumDbName = "/home/pract/LabWEB/WEBprofe/private/sqlite3-dbs/forum.db"
+forumDbName = "/home/alba/Documents/uni/dat/p4/forum.db"
 
 makeApp :: IO Application
 makeApp = do

@@ -63,7 +63,7 @@ instance WebApp Forum where
     appRoot _ req = T.decodeUtf8 $ getApproot req
     urlRenderOverride site r@(StaticR _ _) qs =
         let (segs, rqs) = renderRoute r
-        in Just $ joinPath site "http://soft0.upc.edu/~USER/practica4" segs (rqs <> qs)
+        in Just $ joinPath site "http://localhost:8000/" segs (rqs <> qs)
     urlRenderOverride _ _ _ = Nothing
     authRoute _ = Nothing
     -- Altres configuracions: (com en la practica 3)

@@ -1,0 +1,24 @@
+name: p4
+
+dependencies:
+- base
+- containers
+- text
+- bytestring
+- blaze-html
+- http-types
+- cookie
+- wai
+- wai-extra
+- sqlite-simple
+- template-haskell
+- parsec
+- time
+- mtl
+- directory
+- aeson
+
+executables:
+  forum-backend-cgi:
+    main:                Main.hs
+    source-dirs:         [src/dat-fw/haskell, src/dat-fw-ext/haskell, src/backend/haskell]
