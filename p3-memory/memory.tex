@@ -850,11 +850,12 @@ postQuestionR tid qid = do
 També cal que, quan s'eliminen preguntes, validem que
 pertanyen al tema visitat:
 
-\begin{minted}[highlightlines={4}]{haskell}
+\begin{minted}[highlightlines={4-5}]{haskell}
 requireLeader theme user
 checkBoxes <- lookupPostParams "qid"
 let qids = catMaybes ((readMaybe . T.unpack) <$> checkBoxes)
-unless (isInfixOf qids (map fst questions)) notFound
+let valid = fromList $ map fst questions
+unless (fromList qids `isSubsetOf` valid) notFound
 forM_ qids $ \ qid ->
     liftIO $ deleteFullQuestion qid db
 redirectRoute (ThemeR tid) []
@@ -862,11 +863,12 @@ redirectRoute (ThemeR tid) []
 
 I el mateix quan s'eliminen respostes:
 
-\begin{minted}[highlightlines={4}]{haskell}
+\begin{minted}[highlightlines={4-5}]{haskell}
 requireLeader theme user
 checkBoxes <- lookupPostParams "aid"
 let aids = catMaybes ((readMaybe . T.unpack) <$> checkBoxes)
-unless (isInfixOf aids (map fst answers)) notFound
+let valid = fromList $ map fst answers
+unless (fromList aids `isSubsetOf` valid) notFound
 forM_ aids $ \ aid ->
     liftIO $ deleteAnswer aid db
 redirectRoute (QuestionR tid qid) []

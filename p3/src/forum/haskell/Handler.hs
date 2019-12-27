@@ -15,7 +15,7 @@ import Develop.DatFw.Auth
 import Develop.DatFw.Form
 import Develop.DatFw.Form.Fields
 
-import           Data.List (isInfixOf)
+import           Data.Set (fromList, isSubsetOf)
 import           Data.Text (Text)
 import qualified Data.Text as T
 import           Data.Time.Clock (UTCTime, getCurrentTime)
@@ -119,7 +119,8 @@ postThemeR tid = do
         requireLeader theme user
         checkBoxes <- lookupPostParams "qid"
         let qids = catMaybes ((readMaybe . T.unpack) <$> checkBoxes)
-        unless (isInfixOf qids (map fst questions)) notFound
+        let valid = fromList $ map fst questions
+        unless (fromList qids `isSubsetOf` valid) notFound
         forM_ qids $ \ qid ->
             liftIO $ deleteFullQuestion qid db
         redirectRoute (ThemeR tid) []
@@ -174,7 +175,8 @@ postQuestionR tid qid = do
         requireLeader theme user
         checkBoxes <- lookupPostParams "aid"
         let aids = catMaybes ((readMaybe . T.unpack) <$> checkBoxes)
-        unless (isInfixOf aids (map fst answers)) notFound
+        let valid = fromList $ map fst answers
+        unless (fromList aids `isSubsetOf` valid) notFound
         forM_ aids $ \ aid ->
             liftIO $ deleteAnswer aid db
         redirectRoute (QuestionR tid qid) []
