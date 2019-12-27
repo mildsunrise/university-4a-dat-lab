@@ -80,7 +80,7 @@ postHomeR = do
 questionForm :: AForm (HandlerFor Forum) (Text, Text)
 questionForm =
     (,) <$> freq textField (withPlaceholder "Introduiu l'assumpte de la pregunta" "Assumpte") Nothing
-        <*> freq textareaField (withPlaceholder "Introduiu la text de la pregunta" "Text") Nothing
+        <*> freq textareaField (withPlaceholder "Introduiu el text de la pregunta" "Text") Nothing
 
 getThemeR :: ThemeId -> HandlerFor Forum Html
 getThemeR tid = do
