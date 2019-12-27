@@ -85,8 +85,7 @@ getThemeR :: ThemeId -> HandlerFor Forum Html
 getThemeR tid = do
     -- Get model info
     db <- getsSite forumDb
-    maybeTheme <- liftIO $ getTheme tid db
-    theme <- maybe notFound pure maybeTheme
+    theme <- liftChecked $ getTheme tid db
     questions <- liftIO $ getQuestionList tid db
     mbuser <- maybeAuthId
     tformw <- generateAFormPost (themeForm $ Just theme)
@@ -98,8 +97,8 @@ postThemeR :: ThemeId -> HandlerFor Forum Html
 postThemeR tid = do
     user <- requireAuthId
     db <- getsSite forumDb
-    maybeTheme <- liftIO $ getTheme tid db
-    theme <- maybe notFound pure maybeTheme
+    theme <- liftChecked $ getTheme tid db
+    questions <- liftIO $ getQuestionList tid db
     modifyForm <- isJust <$> lookupPostParam "modify"
     deleteForm <- isJust <$> lookupPostParam "delete"
     addForm <- isJust <$> lookupPostParam "add"
@@ -112,7 +111,6 @@ postThemeR tid = do
                 liftIO $ updateTheme tid newtheme db
                 redirectRoute (ThemeR tid) []
             _ -> do
-                questions <- liftIO $ getQuestionList tid db
                 qformw <- generateAFormPost questionForm
                 let mbuser = Just user
                 defaultLayout $(widgetTemplFile "src/forum/templates/theme.html")
@@ -131,7 +129,6 @@ postThemeR tid = do
                 qid <- liftIO $ addQuestion question db
                 redirectRoute (QuestionR tid qid) []
             _ -> do
-                questions <- liftIO $ getQuestionList tid db
                 tformw <- generateAFormPost (themeForm $ Just theme)
                 let mbuser = Just user
                 defaultLayout $(widgetTemplFile "src/forum/templates/theme.html")
@@ -143,14 +140,18 @@ answerForm :: AForm (HandlerFor Forum) Text
 answerForm =
     freq textareaField (withPlaceholder "Introduiu la text de la resposta" "Text") Nothing
 
+getThemeQuestion :: ThemeId -> QuestionId -> ForumDb -> HandlerFor Forum (Theme, Question)
+getThemeQuestion tid qid db = do
+    question <- liftChecked $ getQuestion qid db
+    unless (qTheme question == tid) notFound
+    theme <- liftChecked $ getTheme tid db
+    pure (theme, question)
+
 getQuestionR :: ThemeId -> QuestionId -> HandlerFor Forum Html
 getQuestionR tid qid = do
     -- Get model info
     db <- getsSite forumDb
-    maybeTheme <- liftIO $ getTheme tid db
-    theme <- maybe notFound pure maybeTheme
-    maybeQuestion <- liftIO $ getQuestion qid db
-    question <- maybe notFound pure maybeQuestion
+    (theme, question) <- getThemeQuestion tid qid db
     answers <- liftIO $ getAnswerList qid db
     mbuser <- maybeAuthId
     aformw <- generateAFormPost answerForm
@@ -161,8 +162,8 @@ postQuestionR :: ThemeId -> QuestionId -> HandlerFor Forum Html
 postQuestionR tid qid = do
     user <- requireAuthId
     db <- getsSite forumDb
-    maybeTheme <- liftIO $ getTheme tid db
-    theme <- maybe notFound pure maybeTheme
+    (theme, question) <- getThemeQuestion tid qid db
+    answers <- liftIO $ getAnswerList qid db
     deleteForm <- isJust <$> lookupPostParam "delete"
     addForm <- isJust <$> lookupPostParam "add"
     if deleteForm
@@ -181,9 +182,6 @@ postQuestionR tid qid = do
                 liftIO $ addAnswer answer db
                 redirectRoute (QuestionR tid qid) []
             _ -> do
-                maybeQuestion <- liftIO $ getQuestion qid db
-                question <- maybe notFound pure maybeQuestion
-                answers <- liftIO $ getAnswerList qid db
                 let mbuser = Just user
                 defaultLayout $(widgetTemplFile "src/forum/templates/question.html")
       else

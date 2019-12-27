@@ -21,6 +21,7 @@ import Data.ByteString.Builder
 import Data.Int
 
 import Control.Monad
+import Control.Monad.IO.Class   -- imports liftIO
 
 data Forum = Forum { forumDb :: ForumDb
                    , forumUsers :: [(Text, Text)]
@@ -78,3 +79,6 @@ requireAdmin u =
 requireLeader :: MonadHandler m => Theme -> UserId -> m ()
 requireLeader t u =
     unless (isLeader t u) (permissionDenied "User is not theme leader")
+
+liftChecked :: MonadHandler m => IO (Maybe a) -> m a
+liftChecked x = liftIO x >>= maybe notFound pure
