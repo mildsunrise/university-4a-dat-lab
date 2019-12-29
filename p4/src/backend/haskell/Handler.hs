@@ -117,6 +117,7 @@ getThemesR = do
 postThemesR :: HandlerFor Forum Value
 postThemesR = do
     user <- requireAuthId
+    users <- getsSite forumUsers
     (pLeader, pCategory, pTitle, pDescription) <- getRequestJSON $ \ obj -> do
         leader <- obj .: "leader"
         category <- obj .: "category"
@@ -124,6 +125,7 @@ postThemesR = do
         description <- obj .: "description"
         pure (leader, category, title, description)
     requireAdmin user
+    unless (isJust $ lookup pLeader users) (invalidArgs ["Leader must be an existing user"])
     let newtheme = Theme pLeader pCategory pTitle pDescription
     tid <- runDbAction $ addTheme newtheme
     getThemeR tid
