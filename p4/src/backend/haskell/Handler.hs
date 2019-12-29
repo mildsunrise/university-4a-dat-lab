@@ -136,6 +136,20 @@ getThemeR tid = do
     theme <- runDbAction (getTheme tid) >>= maybe notFound pure
     themeToJSON (tid, theme)
 
+putThemeR :: ThemeId -> HandlerFor Forum Value
+putThemeR tid = do
+    user <- requireAuthId
+    theme <- runDbAction (getTheme tid) >>= maybe notFound pure
+    (pCategory, pTitle, pDescription) <- getRequestJSON $ \ obj -> do
+        category <- obj .: "category"
+        title <- obj .: "title"
+        description <- obj .: "description"
+        pure (category, title, description)
+    requireLeader theme user
+    let newtheme = Theme (tLeader theme) pCategory pTitle pDescription
+    runDbAction (updateTheme tid newtheme)
+    getThemeR tid
+
 deleteThemeR :: ThemeId -> HandlerFor Forum Value
 deleteThemeR tid = do
     user <- requireAuthId

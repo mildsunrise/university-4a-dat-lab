@@ -46,6 +46,7 @@ instance Dispatch Forum where
             --  URI: /themes/TID
             route ( onStatic ["themes"] <&&> onDynamic ) ThemeR
                 [ onMethod1 "GET" getThemeR             -- get a theme
+                , onMethod1 "PUT" putThemeR             -- modify a theme
                 , onMethod1 "DELETE" deleteThemeR       -- delete a theme
                 ] <||>
             --  URI: /themes/TID/questions
