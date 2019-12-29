@@ -62,10 +62,10 @@ instance ToContent () where
     toContent () = ContentBuilder mempty (Just 0)
 
 instance ToContent [Char] where
-    toContent text =  ContentBuilder (stringUtf8 text) (Just (length text))
+    toContent text =  ContentBuilder (stringUtf8 text) Nothing
 
 instance ToContent Text where
-    toContent text =  ContentBuilder (encodeUtf8Builder text) (Just (T.length text))
+    toContent text =  ContentBuilder (encodeUtf8Builder text) Nothing
 
 instance ToContent Html where
     toContent bs = ContentBuilder (renderHtmlBuilder bs) Nothing
