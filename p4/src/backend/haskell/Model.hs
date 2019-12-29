@@ -52,16 +52,22 @@ data Answer = Answer
 
 type ForumDb = Connection
 
+customOpen :: String -> IO ForumDb
+customOpen path = do
+    conn <- open path
+    execute_ conn "PRAGMA busy_timeout = 400;"
+    pure conn
+
 openExistingDb :: Text -> IO ForumDb
 openExistingDb path = do
     let path' = unpack path
     ok <- doesFileExist path'
-    if ok then open path'
+    if ok then customOpen path'
           else ioError $ mkIOError doesNotExistErrorType "Cannot open data base file" Nothing (Just path')
 
 openDb :: Text -> IO ForumDb
 openDb path = do
-    conn <- open $ unpack path
+    conn <- customOpen $ unpack path
     execute_ conn "CREATE TABLE IF NOT EXISTS themes (id INTEGER PRIMARY KEY, leader TEXT, category TEXT, title TEXT, description TEXT);\n\
                   \CREATE TABLE IF NOT EXISTS questions (id INTEGER PRIMARY KEY, theme INTEGER, user TEXT, posted DATE, title TEXT, body TEXT);\n\
                   \CREATE TABLE IF NOT EXISTS answers (id INTEGER PRIMARY KEY, question INTEGER, user TEXT, posted DATE, body TEXT);"
