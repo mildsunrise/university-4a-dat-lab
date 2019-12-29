@@ -1,0 +1,64 @@
+<div ng-show="$ctrl.theme && $ctrl.question && $ctrl.answers" class="container my-4">
+<h1 class="mt-3">{{ $ctrl.question.title }}</h2>
+<h5 class="text-muted mb-3">
+  <i class="fa fa-question-circle"></i>
+  Preguntat a <a href="#!/themes/{{ $ctrl.theme.id }}">{{ $ctrl.theme.title }}</a>
+  per {{ $ctrl.question.user }} el {{ $ctrl.question.posted }}
+</h5>
+<p class="lead" style="white-space: pre-line">{{ $ctrl.question.text }}</p>
+
+<form ng-submit="$ctrl.deleteAnswers.submit(aids)" role="form">
+  <h2 class="mt-4">{{ $ctrl.answers.length }} respostes</h2>
+  <div>
+    <div ng-repeat="answer in $ctrl.answers" class="my-4">
+      <div class="card">
+        <div class="card-body">
+          <h6 class="card-subtitle mb-3 text-muted">
+            <input ng-if="$ctrl.user.name == $ctrl.theme.leader" ng-model="aids[answer.id]" type="checkbox" />
+            <span><i class="fa fa-clock-o"></i> {{ answer.posted }}</span>
+            <span class="mx-3"><i class="fa fa-user"></i> {{ answer.user }}</span>
+          </h6>
+          <p class="lead mb-0" style="white-space: pre-line">{{ answer.text }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div ng-if="$ctrl.deleteAnswers.error" class="row">
+    <div class="col-sm-12">
+      <div class="alert alert-danger" role="alert">{{ $ctrl.deleteAnswers.error }}</div>
+    </div>
+  </div>
+  <div ng-show="$ctrl.answers.length" ng-if="$ctrl.user.name == $ctrl.theme.leader" class="row">
+    <div class="col-sm-12">
+      <button ng-disabled="$ctrl.deleteAnswers.requesting" type="submit" class="btn btn-danger">Elimina preguntes</button>
+    </div>
+  </div>
+</form>
+</div>
+
+<div ng-if="$ctrl.user" class="container my-4">
+<h2 class="my-3"><i class="fa fa-plus-circle"></i> Afegeix una resposta</h2>
+
+<form ng-submit="$ctrl.createAnswer.submit(newanswer, createAnswerForm)" name="createAnswerForm" role="form">
+  <div class="row">
+    <div class="col-sm-12">
+      <div class="form-group required">
+        <label for="answerText">Text:</label>
+        <textarea ng-model="newanswer.text" rows="5" id="answerText" class="form-control" placeholder="Introduiu el text de la resposta" required></textarea>
+      </div>
+    </div>
+  </div>
+  <div ng-if="$ctrl.createAnswer.error" class="row">
+    <div class="col-sm-12">
+      <div class="alert alert-danger" role="alert">{{ $ctrl.createAnswer.error }}</div>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-sm-12">
+      <button ng-disabled="$ctrl.createAnswer.requesting" type="submit" class="btn btn-success">Crea</button>
+    </div>
+  </div>
+</form>
+
+</div>

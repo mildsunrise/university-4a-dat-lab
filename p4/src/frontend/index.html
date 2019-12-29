@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html ng-app="forumApp">
+<head>
+  <meta charset="utf-8">
+  <link rel="stylesheet" type="text/css" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
+  <link rel="stylesheet" type="text/css" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+  <title>DatForum</title>
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.7.9/angular.min.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.7.9/angular-route.min.js"></script>
+  <script src="utils.js"></script>
+  <script src="app.module.js"></script>
+  <script src="app.config.js"></script>
+  <script src="home-view/home-view.module.js"></script>
+  <script src="home-view/home-view.component.js"></script>
+  <script src="theme-view/theme-view.module.js"></script>
+  <script src="theme-view/theme-view.component.js"></script>
+  <script src="question-view/question-view.module.js"></script>
+  <script src="question-view/question-view.component.js"></script>
+</head>
+<body ng-controller="forumApp">
+  <nav class="navbar navbar-dark bg-primary">
+    <a class="navbar-brand mb-0 h1 mr-auto" href="#!/">DatForum</a>
+
+    <span ng-if="user" class="navbar-text mx-3"><i class="fa fa-user"></i> Usuari: <strong>{{ user.name }}</strong></span>
+    <a ng-if="user" class="btn btn-primary my-1" href="{{ API_BASE }}/auth/logout"><i class="fa fa-sign-out"></i> Tanca sessió</a>
+    <a ng-if="user == null" class="btn btn-primary my-1" href="{{ API_BASE }}/auth/login"><i class="fa fa-sign-in"></i> Login</a>
+  </nav>
+
+  <div ng-view></div>
+</body>
+</html>

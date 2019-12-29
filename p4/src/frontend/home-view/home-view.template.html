@@ -1,0 +1,54 @@
+<div class="container my-4">
+<h1 class="my-3">Tauler de temes</h2>
+
+<div class="row row-cols-1 row-cols-md-2">
+  <div ng-repeat="theme in $ctrl.themes" class="col mb-4">
+    <div class="card">
+      <div class="card-body">
+        <h5 class="card-title">{{ theme.title }}</h5>
+        <h6 class="card-subtitle mb-3 text-muted">{{ theme.category }} <span class="mx-3"><i class="fa fa-user"></i> {{ theme.leader }}</span></h6>
+        <p class="card-text" style="white-space: pre-line">{{ theme.description }}</p>
+        <a href="#!/themes/{{ theme.id }}" class="btn btn-primary">Visita</a>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<div ng-if="$ctrl.user.isAdmin" class="container my-4">
+<h1 class="my-3"><i class="fa fa-plus-circle"></i> Nou tema</h1>
+
+<form ng-submit="$ctrl.createTheme.submit(newtheme)" role="form">
+  <div class="row">
+    <div class="col-sm-12">
+      <div class="form-group required">
+        <label for="themeLeader">Nom del responsable:</label>
+        <input ng-model="newtheme.leader" id="themeLeader" type="text" class="form-control" placeholder="Introduiu el nom de l&#39;usuari responsable" required>
+      </div>
+      <div class="form-group required">
+        <label for="themeCategory">Categoria:</label>
+        <input ng-model="newtheme.category" id="themeCategory" type="text" class="form-control" placeholder="Introduiu la categoria" required>
+      </div>
+      <div class="form-group required">
+        <label for="themeTitle">Titol:</label>
+        <input ng-model="newtheme.title" id="themeTitle" type="text" class="form-control" placeholder="Introduiu el títol del tema" required>
+      </div>
+      <div class="form-group required">
+        <label for="themeDescription">Descripció:</label>
+        <textarea ng-model="newtheme.description" id="themeDescription" class="form-control" placeholder="Introduiu la descripció del tema" required></textarea>
+      </div>
+    </div>
+  </div>
+  <div ng-if="$ctrl.createTheme.error" class="row">
+    <div class="col-sm-12">
+      <div class="alert alert-danger" role="alert">{{ $ctrl.createTheme.error }}</div>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-sm-12">
+      <button ng-disabled="$ctrl.createTheme.requesting" type="submit" class="btn btn-success">Afegeix</button>
+    </div>
+  </div>
+</form>
+
+</div>
